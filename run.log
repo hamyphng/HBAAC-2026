@@ -1,0 +1,142 @@
+Training up to : 2025-07-11
+Val window     : 2025-07-12 → 2025-08-08 (28 days)
+Test window    : 2025-08-09 → 2025-09-05 (28 days)
+Forecast window: 2025-09-06 → 2025-10-31 (56 days)
+Total holiday/Tet dates tracked: 59
+[1/8] Loading raw data …
+  Raw shape : (711980, 8)
+  Date range: 2020-11-17 → 2025-09-05
+  SKUs      : 15,972
+  Neg qty rows: 37,434
+
+  Daily rows after netting: 507,050
+  Days clipped to 0 from negative net: 20,733
+  All SKUs: 15,972
+Saved eda_overview.png
+
+Return rate per SKU: count    15972.000000
+mean         0.101449
+std          0.206708
+min          0.000000
+25%          0.000000
+50%          0.001808
+75%          0.100000
+max          1.800000
+[2/8] SKU segmentation …
+  Tier 0:  7492 SKUs (46.9%) │     35,946 qty (1.4%)
+  Tier 1:  4126 SKUs (25.8%) │    119,568 qty (4.8%)
+  Tier 2:  2050 SKUs (12.8%) │    183,761 qty (7.4%)
+  Tier 3:  2304 SKUs (14.4%) │  2,154,389 qty (86.4%)
+
+  Tier-3 SKUs for ML model: 2,304
+✓ WRMSSE function defined
+  Usage: compute_wrmsse(daily, forecast_dict, eval_start, eval_end, train_end, all_skus)
+Train-CV rows  : 490,588  (up to 2025-07-11)
+Val rows       : 8,375  (2025-07-12 → 2025-08-08)
+Test rows      : 8,087  (2025-08-09 → 2025-09-05)
+Full-train rows: 507,050  (for final submission)
+
+SKU stats computed for CV and full-train sets.
+[3/8] Building CV dense matrix …
+  CV Matrix: (2253, 786) | Non-zero: 183,529
+[3b/8] Building Full dense matrix …
+  Full Matrix: (2304, 786) | Non-zero: 180,518
+✓ Feature matrix per day: 58 features per SKU
+[4/8] Building CV training data …
+  Sampling 120 date-cols × 2253 SKUs = 270,360 rows
+  X_train: (270360, 58)
+[4b/8] Building CV validation data …
+  X_val  : (63084, 58)
+[5/8] Training LightGBM (CV) …
+[500]	valid_0's tweedie: 0.455268
+[1000]	valid_0's tweedie: 0.379452
+[1500]	valid_0's tweedie: 0.330964
+[2000]	valid_0's tweedie: 0.291386
+[2500]	valid_0's tweedie: 0.260048
+[3000]	valid_0's tweedie: 0.23238
+[3500]	valid_0's tweedie: 0.207963
+[4000]	valid_0's tweedie: 0.188425
+  Best iteration: 4000
+
+[5b/8] Training XGBoost (CV) …
+[0]	validation_0-rmse:0.61166
+[175]	validation_0-rmse:1.24375
+  Best iteration: 25
+Defining sparse tier predictor … ✓
+Croston's method will be used for Tier-2 SKUs
+[6/8] CV recursive forecast (val + test window = 56 days) …
+  step  1/56 → 2025-07-12 | mean=0.29, max=52
+  step  8/56 → 2025-07-19 | mean=0.28, max=55
+  step 15/56 → 2025-07-26 | mean=0.28, max=26
+  step 22/56 → 2025-08-02 | mean=0.24, max=27
+  step 29/56 → 2025-08-09 | mean=0.24, max=56
+  step 36/56 → 2025-08-16 | mean=0.21, max=19
+  step 43/56 → 2025-08-23 | mean=0.20, max=5
+  step 50/56 → 2025-08-30 | mean=0.15, max=4
+
+CV tier-3 forecast shape: (2253, 56)
+
+CV sparse tier predictions …
+
+[7/8] Evaluating WRMSSE …
+
+  ── Validation WRMSSE : 0.44157
+  ── Test WRMSSE       : 0.42537
+    Tier 0 ( 7492 SKUs) unweighted avg RMSSE: 0.338  |  weighted contribution: 0.00165
+    Tier 1 ( 4126 SKUs) unweighted avg RMSSE: 0.551  |  weighted contribution: 0.01161
+    Tier 2 ( 2050 SKUs) unweighted avg RMSSE: 0.826  |  weighted contribution: 0.05106
+    Tier 3 ( 2304 SKUs) unweighted avg RMSSE: 0.488  |  weighted contribution: 0.37725
+Saved feat_importance.png
+[8a/8] Building full training dataset …
+  Sampling 120 date-cols × 2304 SKUs = 276,480 rows
+  X_train_full: (276480, 58) | X_val_full: (138240, 58)
+
+[8b/8] Training LightGBM (full) …
+  Best iteration: 260
+
+[8c/8] Training XGBoost (full) …
+[0]	validation_0-rmse:6.75131
+[500]	validation_0-rmse:5.49661
+[1000]	validation_0-rmse:5.29363
+[1500]	validation_0-rmse:5.21443
+[2000]	validation_0-rmse:5.17224
+[2500]	validation_0-rmse:5.14289
+[2999]	validation_0-rmse:5.11499
+  Best iteration: 2999
+
+Final recursive forecast (56 days) …
+  step  1/56 → 2025-09-06 | mean=0.33, max=52
+  step  8/56 → 2025-09-13 | mean=0.38, max=40
+  step 15/56 → 2025-09-20 | mean=0.46, max=76
+  step 22/56 → 2025-09-27 | mean=0.43, max=43
+  step 29/56 → 2025-10-04 | mean=0.44, max=58
+  step 36/56 → 2025-10-11 | mean=0.43, max=60
+  step 43/56 → 2025-10-18 | mean=0.50, max=79
+  step 50/56 → 2025-10-25 | mean=0.47, max=47
+
+Final tier-3 forecast shape: (2304, 56)
+
+Final sparse tier predictions …
+
+Total SKUs with predictions: 15,972
+✓ Zero-inflation post-processing applied
+  SKUs with ≥1 non-zero forecast: 4,617/15,972
+Building submission …
+
+✓ Saved: /mnt/data/HBAAC-2026-bg/output/submission_v3.csv
+  Rows : 31,944  | Cols : 29
+  First row id : SKU-00001_validation
+  Middle row id: SKU-00001_evaluation  ← first evaluation row
+  Rows with any non-zero forecast: 9,234
+
+✓ All sanity checks passed.
+                     id        F1        F2         F3         F4         F5         F6         F7        F8        F9        F10        F11        F12        F13        F14       F15       F16        F17        F18        F19        F20        F21       F22       F23        F24        F25        F26        F27        F28
+0  SKU-00001_validation  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889
+1  SKU-00002_validation  5.279526  0.000103   7.336328   7.188935   8.125943   7.469225   7.682884  7.291033  0.000121   9.934429   8.702833   9.034889   8.411382   8.566322  7.553012  0.000121   8.390774   8.434214   7.682524   8.931969   7.489762  6.168052  0.000125   7.544966   8.038304   7.610782   7.788009   7.450865
+2  SKU-00003_validation  9.015548  0.000159  11.327913  10.586538  14.146058  16.060081  10.019089  8.909651  0.000190  10.621555  10.011466  15.581251  15.903706  12.382412  7.075425  0.000193  13.000010  12.417101  14.197731  11.563589  11.224039  7.935757  0.000220  11.147897  11.883406  15.499007  12.449483  11.016825
+...
+                         id        F1        F2         F3         F4         F5         F6         F7        F8        F9        F10        F11        F12        F13        F14        F15       F16        F17        F18        F19        F20        F21       F22       F23        F24        F25        F26        F27        F28
+15972  SKU-00001_evaluation  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889  0.188889  0.188889   0.188889   0.188889   0.188889   0.188889   0.188889
+15973  SKU-00002_evaluation  6.250019  0.000124   7.904137   8.458612   7.514270   7.773267   7.083161  6.701780  0.000120   9.744541  10.622349  10.416585  10.777693   9.801613   7.977045  0.000125   9.483913   9.472612   9.659875   9.886093   8.477494  8.460908  0.000135   9.070809   9.452897   9.981691  10.905743   9.380207
+15974  SKU-00003_evaluation  8.493793  0.000248  11.808462  12.094378  14.186178  12.961292  11.310659  8.690716  0.000246  15.655322  17.110207  18.855223  15.278392  13.345823  10.007720  0.000250  14.908653  15.211349  17.989319  16.568979  11.975739  9.801533  0.000269  15.437529  14.824595  16.504786  14.614277  13.884348
+Saved top_sku_forecasts.png
